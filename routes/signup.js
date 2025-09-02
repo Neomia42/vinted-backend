@@ -56,12 +56,12 @@ router.post("/user/signup", fileUpload(), async (req, res) => {
       account: {
         username: req.body.username,
         avatar: avatarUrl,
-        email: req.body.email,
-        newsletter: req.body.newsletter,
-        token: token,
-        hash: hash,
-        salt: salt,
       },
+      email: req.body.email,
+      newsletter: req.body.newsletter,
+      token: token,
+      hash: hash,
+      salt: salt,
     });
     console.log(newUser);
     await newUser.save();
