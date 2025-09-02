@@ -1,15 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const fileUpload = require("express-fileupload"); // Import du middleware pour gérer les fichiers upload
+const convertToBase64 = require("../utils/convertToBase64"); // Import du middleware de conversion en base64
 const uid = require("uid2"); // import du package uid2
-const SHA256 = require("crypto-js/sha256"); // nous servira pour l'encryptage
-const encBase64 = require("crypto-js/enc-base64"); //  nous servira pour
+const SHA256 = require("crypto-js/sha256"); // Pour l'encryptage
+const encBase64 = require("crypto-js/enc-base64"); //  nous servira pour encoder en base 64 le hash généré
+const cloudinary = require("cloudinary").v2; // Import du SDK Cloudinary
+require("dotenv").config(); // Pour utiliser les variables d'environnement
 
 // models
 const User = require("../models/User");
 
 // CREATE USER
-router.post("/user/signup", fileUpload(), async (req, res) => {
+router.post("/user/signup", fileUpload(), convertToBase64, async (req, res) => {
   try {
     if (
       !req.body.email ||
@@ -31,11 +34,8 @@ router.post("/user/signup", fileUpload(), async (req, res) => {
 
     if (req.files && req.files.avatar) {
       try {
-        let file = req.files.avatar;
-
-        const fileBase64 = `data:${file.mimetype};base64,${file.data.toString(
-          "base64"
-        )}`;
+        const fileBase64 = req.files.avatar.base64;
+        // Upload de l'avatar sur Cloudinary
 
         const result = await cloudinary.uploader.upload(fileBase64, {
           folder: "vinted/avatars",

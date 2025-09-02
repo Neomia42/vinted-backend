@@ -2,7 +2,7 @@ const express = require("express"); // import du package express
 const router = express.Router();
 const fileUpload = require("express-fileupload"); // Import du middleware pour gérer les fichiers upload
 const cloudinary = require("cloudinary").v2;
-const convertToBase64 = require("../utils/encodeBase64"); // Import de la fonction utilitaire pour convertir en base64
+const convertToBase64 = require("../utils/convertToBase64"); // Import de la fonction utilitaire pour convertir en base64
 // Import models
 const Offer = require("../models/Offer"); // Import du modèle Offer
 const isAuthenticated = require("../middleware/isAuthentificated");
@@ -32,6 +32,7 @@ router.post(
   "/offer/publish",
   isAuthenticated,
   fileUpload(),
+  convertToBase64,
   async (req, res) => {
     try {
       //poster une annonce
@@ -84,9 +85,9 @@ router.post(
       });
 
       await newOffer.save();
-      const convertedPicture = convertToBase64(req.files.picture);
+
       const uploadResponse = await cloudinary.uploader.upload(
-        convertedPicture,
+        req.files.picture.base64,
         {
           folder: `vinted/offers/${newOffer._id}`,
           public_id: "product_image",
@@ -104,9 +105,8 @@ router.post(
         const maxPictures = Math.min(pictures.length, 5);
 
         for (let i = 0; i < maxPictures; i++) {
-          const convertedPicture = convertToBase64(pictures[i]);
           const uploadResponse = await cloudinary.uploader.upload(
-            convertedPicture,
+            pictures[i].base64,
             {
               folder: `vinted/offers/${newOffer._id}`,
               public_id: `additional_image_${i}`,
@@ -136,19 +136,11 @@ router.put(
   "/offer/update/:id",
   isAuthenticated,
   fileUpload(),
+  convertToBase64,
   async (req, res) => {
     try {
       const offerId = req.params.id;
-      const {
-        title,
-        description,
-        price,
-        brand,
-        size,
-        condition,
-        couleur,
-        city,
-      } = req.body;
+      const { title, description, price } = req.body;
 
       // Vérifier si l'offre existe
       const offer = await Offer.findById(offerId);
@@ -212,11 +204,13 @@ router.put(
           .json({ error: "Une image est obligatoire pour publier une offre" });
       }
       if (req.files && req.files.picture) {
-        const convertedPicture = convertToBase64(req.files.picture);
-        const result = await cloudinary.uploader.upload(convertedPicture, {
-          folder: `vinted/offers/${offer._id}`,
-          public_id: "product_image",
-        });
+        const result = await cloudinary.uploader.upload(
+          req.files.picture.base64,
+          {
+            folder: `vinted/offers/${offer._id}`,
+            public_id: "product_image",
+          }
+        );
 
         offer.product_picture = {
           secure_url: result.secure_url,
@@ -231,9 +225,8 @@ router.put(
         const maxPictures = Math.min(pictures.length, 5);
 
         for (let i = 0; i < maxPictures; i++) {
-          const convertedPicture = convertToBase64(pictures[i]);
           const uploadResponse = await cloudinary.uploader.upload(
-            convertedPicture,
+            pictures[i].base64,
             {
               folder: `vinted/offers/${offer._id}`,
               public_id: `additional_image_${i}`,
