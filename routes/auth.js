@@ -37,7 +37,7 @@ router.post("/user/login", async (req, res) => {
         username: userExisting.account.username,
       },
     };
-    return res.status(200).json({ resObject });
+    return res.status(200).json(resObject);
     _;
   } catch (error) {
     return res.status(500).json({ message: error.message });
