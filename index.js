@@ -26,6 +26,8 @@ const publishRoutes = require("./routes/offer");
 app.use(publishRoutes);
 const offersRoutes = require("./routes/offers");
 app.use(offersRoutes);
+const paymentRoutes = require("./routes/payment");
+app.use(paymentRoutes);
 // Route bienvenue
 app.get("/", (req, res) => {
   try {
