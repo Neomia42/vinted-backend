@@ -8,64 +8,49 @@ const Offer = require("../models/Offer"); // Import du modèle Offer
 router.get("/offers", async (req, res) => {
   try {
     const filters = {};
-    let page = 1; // Valeur par défaut
-    let limit = 5;
-    let skip = 0;
-    if (req.query.limit) {
-      limit = Number(req.query.limit);
-    }
-    if (req.query.page) {
-      if (req.query.limit) {
-        limit = parseInt(req.query.limit);
-      }
-      if (req.query.page) {
-        page = parseInt(req.query.page);
-        skip = (page - 1) * limit;
-      }
-    }
 
+    // Pagination sécurisée
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const skip = (page - 1) * limit;
+
+    // Filtre titre
     if (req.query.title) {
+      const title = req.query.title;
       filters.product_name = new RegExp(title, "i");
     }
-    // if (priceMin || priceMax) {
-    //   filters.product_price = {};
-    //   if (priceMin) {
-    //     filters.product_price.$gt = parseInt(priceMin);
-    //   }
-    //   if (priceMax) {
-    //     filters.product_price.$lt = parseInt(priceMax);
-    //   }
 
-    // }
-    if (req.query.priceMax) {
-      filters.product_price = { $lt: Number(req.query.priceMax) };
-    }
-    if (req.query.priceMin) {
-      if (filters.product_price) {
+    // Filtres prix
+    if (req.query.priceMin || req.query.priceMax) {
+      filters.product_price = {};
+      if (req.query.priceMin) {
         filters.product_price.$gte = Number(req.query.priceMin);
-      } else {
-        filters.product_price = { $gte: Number(req.query.priceMin) };
+      }
+      if (req.query.priceMax) {
+        filters.product_price.$lte = Number(req.query.priceMax);
       }
     }
+
+    // Tri
     let sortOptions = {};
-    if (req.query.sort) {
-      if (req.query.sort === "price_desc") {
-        sortOptions = { product_price: -1 };
-      }
-      if (req.query.sort === "price_asc") {
-        sortOptions = { product_price: 1 };
-      }
-    }
+    if (req.query.sort === "price_desc") sortOptions = { product_price: -1 };
+    if (req.query.sort === "price_asc") sortOptions = { product_price: 1 };
 
     const offers = await Offer.find(filters)
+      .select("product_name product_price product_image owner")
+      .populate("owner", "account")
       .skip(skip)
       .limit(limit)
       .sort(sortOptions);
 
     const count = await Offer.countDocuments(filters);
 
-    return res.status(200).json({ nombreAnnonces: count, offers: offers });
-    return res.status(200).json(offers);
+    return res.status(200).json({
+      nombreAnnonces: count,
+      page,
+      limit,
+      offers,
+    });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
