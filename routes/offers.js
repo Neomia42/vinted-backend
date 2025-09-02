@@ -37,7 +37,7 @@ router.get("/offers", async (req, res) => {
     if (req.query.sort === "price_asc") sortOptions = { product_price: 1 };
 
     const offers = await Offer.find(filters)
-      .select("product_name product_price product_image owner")
+      .select("product_name product_price product_image product_pictures owner")
       .populate("owner", "account")
       .skip(skip)
       .limit(limit)

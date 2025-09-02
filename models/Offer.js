@@ -9,8 +9,8 @@ const Offer = mongoose.model("Offer", {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  product_picture: Object,
-  product_pictures_add: Array,
+  product_image: Object,
+  product_pictures: Array,
 });
 
 module.exports = Offer;

@@ -78,10 +78,10 @@ router.post(
 
         owner: req.user._id,
 
-        product_picture: {
+        product_image: {
           secure_url: "",
         },
-        product_pictures_add: [],
+        product_pictures: [],
       });
 
       await newOffer.save();
@@ -93,7 +93,7 @@ router.post(
           public_id: "product_image",
         }
       );
-      newOffer.product_picture = {
+      newOffer.product_image = {
         secure_url: uploadResponse.secure_url,
         public_id: uploadResponse.public_id,
       };
@@ -113,7 +113,7 @@ router.post(
             }
           );
 
-          newOffer.product_pictures_add.push({
+          newOffer.product_pictures.push({
             secure_url: uploadResponse.secure_url,
             public_id: uploadResponse.public_id,
           });
